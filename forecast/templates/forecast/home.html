@@ -1,0 +1,47 @@
+{% load tags %}  
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Weather</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style> body{font-family:sans-serif; margin:2rem;} </style>
+</head>
+<body>
+  <h1>Прогноз погоды</h1>
+  <form method="post">
+    {% csrf_token %} 
+    <input id="city" name="city" placeholder="Введите город" value="{{ last_city|default:'' }}" autocomplete="off">
+    <button type="submit">Искать</button>
+  </form>
+  {% if error %}<p style="color:red">{{ error }}</p>{% endif %}
+  {% if weather %}
+    <h2>Погода для {{ city }}</h2>
+    <table border="1" cellpadding="4">
+      <tr><th>Время</th><th>Темп. °C</th><th>Код погоды</th></tr>
+      {% for time in weather.hourly.time %}
+      <tr>
+        <td>{{ time|date:"d.m.Y H:i" }}</td>
+        <td>{{ weather.hourly.temperature_2m|index:forloop.counter0 }}</td>
+        <td>{{ weather.hourly.weathercode|index:forloop.counter0 }}</td>
+      </tr>
+    {% endfor %}
+    </table>
+  {% endif %}
+
+<script>
+$(function(){
+  $('#city').on('input', function(){
+    let q = $(this).val();
+    if(q.length<2) return;
+    $.getJSON("{% url 'forecast:autocomplete' %}",{q}, function(data){
+      // простейший дизэйбл/подсказка
+      // можно рисовать список или подключить jQuery UI
+      console.log('suggestions', data);
+    });
+  });
+});
+</script>
+</body>
+</html>
